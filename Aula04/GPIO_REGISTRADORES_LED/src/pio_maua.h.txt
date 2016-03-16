@@ -1,0 +1,37 @@
+#ifndef PIO_MAUA
+#define PIO_MAUA
+
+ void config(int PIN_LED, int PIO){
+
+PIO->PIO_PER |= (1 << PIN_LED );
+PIO->PIO_WPMR = 0;
+PIO->PIO_OER |=  (1 << PIN_LED );
+
+}
+
+ void alto(int PIO, int PIN_LED){
+	if(PIO==PIOC){
+		PIO->PIO_CODR = (1 << PIN_LED );
+	}else{
+		PIO->PIO_SODR = (1 << PIN_LED );
+	}
+}
+
+ void baixo(int PIO, int PIN_LED){
+	if(PIO==PIOC){
+		PIO->PIO_SODR = (1 << PIN_LED );
+	}else{
+		PIO->PIO_CODR = (1 << PIN_LED );
+	}
+}
+
+void invt(int PIO, int PIN_LED){
+if(){
+}
+
+
+}
+
+
+
+
