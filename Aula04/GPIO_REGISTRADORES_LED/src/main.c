@@ -38,6 +38,9 @@
 #define PIN_LED_GREEN 20
 #define PIN_LED_RED 20
 
+#define PIN_BUTTON_2 3
+
+
 /** 
  * Definição dos ports
  * Ports referentes a cada pino
@@ -45,7 +48,7 @@
 #define PORT_LED_BLUE PIOA
 #define PORT_LED_GREEN PIOA
 #define PORT_LED_RED PIOC
-
+#define PORT_BUTTON_2 PIOB
 
 
 /**
@@ -75,8 +78,7 @@ int main (void)
 	// 29.17.4 PMC Peripheral Clock Enable Register 0
 	// 1: Enables the corresponding peripheral clock.
 	// ID_PIOA = 11 - TAB 11-1
-	PMC->PMC_PCER0 |= ID_PIOA;
-	PMC->PMC_PCER0 |= ID_PIOC;
+	PMC->PMC_PCER0 |= (1 << ID_PIOA) | (1 << ID_PIOB) | (1 << ID_PIOC);
 
 	 //31.6.1 PIO Enable Register
 	// 1: Enables the PIO to control the corresponding pin (disables peripheral control of the pin).	
@@ -105,8 +107,9 @@ int main (void)
 	*	Loop infinito
 	*/
 	
-	//ligar registrador 
-	//PIOA->PIO_OSR
+	PORT_BUTTON_2->PIO_ODR  = 1 << PIN_BUTTON_2;
+	PORT_BUTTON_2->PIO_PUER = 1 << PIN_BUTTON_2;
+	PORT_BUTTON_2->PIO_IFDR = 1 << PIN_BUTTON_2;
 	
 		while(1){
 		
@@ -114,20 +117,27 @@ int main (void)
              * Utilize a função delay_ms para fazer o led piscar na frequência
              * escolhida por você.
              */
-			delay_ms(1000);
-			_pio_set(PIOA, PIN_LED_BLUE);
-			_pio_set(PIOA, PIN_LED_GREEN);
-			_pio_set(PIOC, PIN_LED_RED);
-			delay_ms(1000);
-			_pio_clear(PIOA, PIN_LED_BLUE);
-			_pio_clear(PIOA, PIN_LED_GREEN);
-			_pio_clear(PIOC, PIN_LED_RED);
+			if(((PORT_BUTTON_2->PIO_PDSR >> PIN_BUTTON_2) & 1) == 0){
 			
+				delay_ms(1000);
+				_pio_set(PIOA, PIN_LED_BLUE);
+				_pio_set(PIOA, PIN_LED_GREEN);
+				_pio_set(PIOC, PIN_LED_RED);
+				delay_ms(1000);
+				_pio_clear(PIOA, PIN_LED_BLUE);
+				_pio_clear(PIOA, PIN_LED_GREEN);
+				_pio_clear(PIOC, PIN_LED_RED);
+			}
+			else{
+				_pio_set(PIOA, PIN_LED_BLUE);
+				_pio_set(PIOA, PIN_LED_GREEN);
+				_pio_set(PIOC, PIN_LED_RED);			
+			}
+				
+			//_pio_set_output(PIOA, PIN_LED_BLUE, const uint32_t ul_default_level, const uint32_t ul_pull_up_enable)
 					
 				
 				
 	}
 }
-
-
 
