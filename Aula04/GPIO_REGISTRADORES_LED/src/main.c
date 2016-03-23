@@ -8,6 +8,8 @@
 */
 
 #include <asf.h>
+#include <pio_maua.h>
+#include <pio_maua.c>
 
 
 /*
@@ -95,8 +97,8 @@ int main (void)
 
 	// 31.6.10 PIO Set Output Data Register
 	// 1: Sets the data to be driven on the I/O line.
-	PIOA->PIO_SODR = (0 << PIN_LED_BLUE );
-	PIOA->PIO_SODR = (0 << PIN_LED_GREEN );
+	//PIOA->PIO_SODR = (0 << PIN_LED_BLUE );
+	//PIOA->PIO_SODR = (0 << PIN_LED_GREEN );
 	PIOC->PIO_SODR = (1 << PIN_LED_RED );
 
 	/**
@@ -109,13 +111,13 @@ int main (void)
              * escolhida por você.
              */
 			delay_ms(1000);
-			PIOA->PIO_CODR = (1 << PIN_LED_BLUE );
-			PIOA->PIO_CODR = (1 << PIN_LED_GREEN );
-			PIOC->PIO_SODR = (1 << PIN_LED_RED );
+			_pio_set(PIOA, PIN_LED_BLUE);
+			_pio_set(PIOA, PIN_LED_GREEN);
+			_pio_set(PIOC, PIN_LED_RED);
 			delay_ms(1000);
-			PIOA->PIO_SODR = (1 << PIN_LED_BLUE );
-			PIOA->PIO_SODR = (1 << PIN_LED_GREEN );
-			PIOC->PIO_CODR = (1 << PIN_LED_RED );
+			_pio_clear(PIOA, PIN_LED_BLUE);
+			_pio_clear(PIOA, PIN_LED_GREEN);
+			_pio_clear(PIOC, PIN_LED_RED);
 			
 					
 				
