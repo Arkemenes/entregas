@@ -104,6 +104,10 @@ int main (void)
 	/**
 	*	Loop infinito
 	*/
+	
+	//ligar registrador 
+	//PIOA->PIO_OSR
+	
 		while(1){
 		
             /*
