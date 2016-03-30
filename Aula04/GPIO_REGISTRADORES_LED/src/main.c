@@ -128,7 +128,7 @@ int main (void)
              * Utilize a função delay_ms para fazer o led piscar na frequência
              * escolhida por você.
              */
-			if(((PORT_BUTTON_2->PIO_PDSR >> PIN_BUTTON_2) & 1) == 0){
+			if(_pio_get_output_data_status(PORT_BUTTON_2, 1 << PIN_BUTTON_2)){
 			
 				delay_ms(1000);
 				_pio_set(PIOA, (1 << PIN_LED_BLUE)|( 1 << PIN_LED_GREEN));

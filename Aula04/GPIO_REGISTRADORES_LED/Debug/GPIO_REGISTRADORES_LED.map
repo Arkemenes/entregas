@@ -2957,7 +2957,7 @@ Discarded input sections
  .text._pio_clear
                 0x00000000       0x10 src/main.o
  .text._pio_get_output_data_status
-                0x00000000        0x4 src/main.o
+                0x00000000        0x8 src/main.o
  .text._pio_pull_up
                 0x00000000        0xc src/main.o
  .text._pio_pull_down
@@ -3836,7 +3836,7 @@ OUTPUT(GPIO_REGISTRADORES_LED.elf elf32-littlearm)
  .comment       0x00000000       0x5c src/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.o
  .comment       0x00000000       0x5c src/main.o
 
-.debug_info     0x00000000     0x5aa0
+.debug_info     0x00000000     0x5ad8
  .debug_info    0x00000000      0x736 src/ASF/common/services/clock/sam4s/sysclk.o
  .debug_info    0x00000736      0x134 src/ASF/common/services/delay/sam/cycle_counter.o
  .debug_info    0x0000086a     0x1951 src/ASF/sam/drivers/pio/pio.o
@@ -3844,9 +3844,9 @@ OUTPUT(GPIO_REGISTRADORES_LED.elf elf32-littlearm)
  .debug_info    0x00003132     0x10d2 src/ASF/sam/drivers/pmc/pmc.o
  .debug_info    0x00004204      0x68d src/ASF/sam/utils/cmsis/sam4s/source/templates/gcc/startup_sam4s.o
  .debug_info    0x00004891      0x469 src/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.o
- .debug_info    0x00004cfa      0xda6 src/main.o
+ .debug_info    0x00004cfa      0xdde src/main.o
 
-.debug_abbrev   0x00000000      0xf65
+.debug_abbrev   0x00000000      0xf5e
  .debug_abbrev  0x00000000      0x221 src/ASF/common/services/clock/sam4s/sysclk.o
  .debug_abbrev  0x00000221       0x9d src/ASF/common/services/delay/sam/cycle_counter.o
  .debug_abbrev  0x000002be      0x30b src/ASF/sam/drivers/pio/pio.o
@@ -3854,7 +3854,7 @@ OUTPUT(GPIO_REGISTRADORES_LED.elf elf32-littlearm)
  .debug_abbrev  0x00000849      0x277 src/ASF/sam/drivers/pmc/pmc.o
  .debug_abbrev  0x00000ac0      0x168 src/ASF/sam/utils/cmsis/sam4s/source/templates/gcc/startup_sam4s.o
  .debug_abbrev  0x00000c28       0xf5 src/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.o
- .debug_abbrev  0x00000d1d      0x248 src/main.o
+ .debug_abbrev  0x00000d1d      0x241 src/main.o
 
 .debug_loc      0x00000000     0x244a
  .debug_loc     0x00000000       0xed src/ASF/common/services/clock/sam4s/sysclk.o
@@ -4019,7 +4019,7 @@ OUTPUT(GPIO_REGISTRADORES_LED.elf elf32-littlearm)
  .debug_macro   0x00011035       0x10 src/main.o
  .debug_macro   0x00011045       0x28 src/main.o
 
-.debug_line     0x00000000     0x5daa
+.debug_line     0x00000000     0x5db4
  .debug_line    0x00000000      0xb5d src/ASF/common/services/clock/sam4s/sysclk.o
  .debug_line    0x00000b5d      0xa31 src/ASF/common/services/delay/sam/cycle_counter.o
  .debug_line    0x0000158e      0xeb9 src/ASF/sam/drivers/pio/pio.o
@@ -4027,7 +4027,7 @@ OUTPUT(GPIO_REGISTRADORES_LED.elf elf32-littlearm)
  .debug_line    0x00002f25      0xfe5 src/ASF/sam/drivers/pmc/pmc.o
  .debug_line    0x00003f0a      0x87d src/ASF/sam/utils/cmsis/sam4s/source/templates/gcc/startup_sam4s.o
  .debug_line    0x00004787      0x897 src/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.o
- .debug_line    0x0000501e      0xd8c src/main.o
+ .debug_line    0x0000501e      0xd96 src/main.o
 
 .debug_str      0x00000000    0x509d4
  .debug_str     0x00000000    0x4e4d7 src/ASF/common/services/clock/sam4s/sysclk.o

@@ -15,23 +15,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   5 .comment      0000005b  00000000  00000000  00010462  2**0
                   CONTENTS, READONLY
-  6 .debug_info   00005aa0  00000000  00000000  000104bd  2**0
+  6 .debug_info   00005ad8  00000000  00000000  000104bd  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000f65  00000000  00000000  00015f5d  2**0
+  7 .debug_abbrev 00000f5e  00000000  00000000  00015f95  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_loc    0000244a  00000000  00000000  00016ec2  2**0
+  8 .debug_loc    0000244a  00000000  00000000  00016ef3  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_aranges 00000508  00000000  00000000  0001930c  2**0
+  9 .debug_aranges 00000508  00000000  00000000  0001933d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 000004b8  00000000  00000000  00019814  2**0
+ 10 .debug_ranges 000004b8  00000000  00000000  00019845  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_macro  0001106d  00000000  00000000  00019ccc  2**0
+ 11 .debug_macro  0001106d  00000000  00000000  00019cfd  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_line   00005daa  00000000  00000000  0002ad39  2**0
+ 12 .debug_line   00005db4  00000000  00000000  0002ad6a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_str    000509d4  00000000  00000000  00030ae3  2**0
+ 13 .debug_str    000509d4  00000000  00000000  00030b1e  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_frame  00000b84  00000000  00000000  000814b8  2**2
+ 14 .debug_frame  00000b84  00000000  00000000  000814f4  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1216,7 +1216,7 @@ void _pio_set_input(Pio *p_pio, const uint32_t ul_mask, const uint32_t ul_attrib
 		p_pio->PIO_IFDR = 1 << ul_mask;
 	}
 	*/
-	if(ul_attribute & (1 << 2)){		//OPENDRAIN
+	if(ul_attribute & (1 << 2)){		//OPENDRAIN 
 		p_pio->PIO_IFER = ul_mask;
   4005fa:	621a      	str	r2, [r3, #32]
 	}else{
@@ -1240,20 +1240,26 @@ void _pio_set(Pio *p_pio, const uint32_t ul_mask)
              * Utilize a função delay_ms para fazer o led piscar na frequência
              * escolhida por você.
              */
-			if(((PORT_BUTTON_2->PIO_PDSR >> PIN_BUTTON_2) & 1) == 0){
+			if(_pio_get_output_data_status(PORT_BUTTON_2, 1 << PIN_BUTTON_2)){
 			
 				delay_ms(1000);
   400604:	f8df 9054 	ldr.w	r9, [pc, #84]	; 40065c <main+0x9c>
+
+}
+
+uint32_t _pio_get_output_data_status(const Pio *p_pio, const uint32_t ul_mask)
+{
+return p_pio->PIO_PDSR & ul_mask;
+  400608:	4b13      	ldr	r3, [pc, #76]	; (400658 <main+0x98>)
+  40060a:	6bdb      	ldr	r3, [r3, #60]	; 0x3c
 		
             /*
              * Utilize a função delay_ms para fazer o led piscar na frequência
              * escolhida por você.
              */
-			if(((PORT_BUTTON_2->PIO_PDSR >> PIN_BUTTON_2) & 1) == 0){
-  400608:	4b13      	ldr	r3, [pc, #76]	; (400658 <main+0x98>)
-  40060a:	6bdb      	ldr	r3, [r3, #60]	; 0x3c
+			if(_pio_get_output_data_status(PORT_BUTTON_2, 1 << PIN_BUTTON_2)){
   40060c:	f013 0f08 	tst.w	r3, #8
-  400610:	d10e      	bne.n	400630 <main+0x70>
+  400610:	d00e      	beq.n	400630 <main+0x70>
 			
 				delay_ms(1000);
   400612:	4648      	mov	r0, r9
