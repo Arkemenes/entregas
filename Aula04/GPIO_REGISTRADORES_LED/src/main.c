@@ -8,8 +8,8 @@
 */
 
 #include <asf.h>
-#include <pio_maua.h>
-#include <pio_maua.c>
+#include "pio_maua.h"
+#include "pio_maua.c"
 
 
 /*
@@ -82,34 +82,45 @@ int main (void)
 
 	 //31.6.1 PIO Enable Register
 	// 1: Enables the PIO to control the corresponding pin (disables peripheral control of the pin).	
-	PIOA->PIO_PER |= (1 << PIN_LED_BLUE );
-	PIOA->PIO_PER |= (1 << PIN_LED_GREEN );
-	PIOC->PIO_PER |= (1 << PIN_LED_RED );
+	//PIOA->PIO_PER |= (1 << PIN_LED_BLUE );
+	//PIOA->PIO_PER |= (1 << PIN_LED_GREEN );
+	//PIOC->PIO_PER |= (1 << PIN_LED_RED );
 
 	// 31.6.46 PIO Write Protection Mode Register
 	// 0: Disables the write protection if WPKEY corresponds to 0x50494F (PIO in ASCII).
-	PIOA->PIO_WPMR = 0;
-	PIOC->PIO_WPMR = 0;
+	//PIOA->PIO_WPMR = 0;
+	//PIOC->PIO_WPMR = 0;
 	
 	// 31.6.4 PIO Output Enable Register
 	// 1: Enables the output on the I/O line.
-	PIOA->PIO_OER |=  (1 << PIN_LED_BLUE );
-	PIOA->PIO_OER |=  (1 << PIN_LED_GREEN );
-	PIOC->PIO_OER |=  (1 << PIN_LED_RED );
+	//PIOA->PIO_OER |=  (1 << PIN_LED_BLUE );
+	//PIOA->PIO_OER |=  (1 << PIN_LED_GREEN );
+	//PIOC->PIO_OER |=  (1 << PIN_LED_RED );
+	
+	_pio_set_output(PIOA,(1 << PIN_LED_BLUE)|(1 << PIN_LED_GREEN),1,1);
+	_pio_set_output(PIOC,1 << PIN_LED_RED,1,1);
 
 	// 31.6.10 PIO Set Output Data Register
 	// 1: Sets the data to be driven on the I/O line.
 	//PIOA->PIO_SODR = (0 << PIN_LED_BLUE );
 	//PIOA->PIO_SODR = (0 << PIN_LED_GREEN );
-	PIOC->PIO_SODR = (1 << PIN_LED_RED );
+	//PIOC->PIO_SODR = (1 << PIN_LED_RED );
 
+	/*
+	*
+	* sets input
+	*
+	*/
+	
+	//PORT_BUTTON_2->PIO_ODR  = 1 << PIN_BUTTON_2;
+	//PORT_BUTTON_2->PIO_PUER = 1 << PIN_BUTTON_2;
+	//PORT_BUTTON_2->PIO_IFDR = 1 << PIN_BUTTON_2;
+	_pio_set_input(PORT_BUTTON_2,(1 << PIN_BUTTON_2),  PIO_DEBOUNCE | PIO_OPENDRAIN | PIO_PULLUP);
+	
+	
 	/**
 	*	Loop infinito
 	*/
-	
-	PORT_BUTTON_2->PIO_ODR  = 1 << PIN_BUTTON_2;
-	PORT_BUTTON_2->PIO_PUER = 1 << PIN_BUTTON_2;
-	PORT_BUTTON_2->PIO_IFDR = 1 << PIN_BUTTON_2;
 	
 		while(1){
 		
@@ -120,18 +131,15 @@ int main (void)
 			if(((PORT_BUTTON_2->PIO_PDSR >> PIN_BUTTON_2) & 1) == 0){
 			
 				delay_ms(1000);
-				_pio_set(PIOA, PIN_LED_BLUE);
-				_pio_set(PIOA, PIN_LED_GREEN);
-				_pio_set(PIOC, PIN_LED_RED);
+				_pio_set(PIOA, (1 << PIN_LED_BLUE)|( 1 << PIN_LED_GREEN));
+				_pio_set(PIOC, 1 << PIN_LED_RED);
 				delay_ms(1000);
-				_pio_clear(PIOA, PIN_LED_BLUE);
-				_pio_clear(PIOA, PIN_LED_GREEN);
-				_pio_clear(PIOC, PIN_LED_RED);
+				_pio_clear(PIOA, (1 << PIN_LED_BLUE)|( 1 << PIN_LED_GREEN));
+				_pio_clear(PIOC, 1 << PIN_LED_RED);
 			}
 			else{
-				_pio_set(PIOA, PIN_LED_BLUE);
-				_pio_set(PIOA, PIN_LED_GREEN);
-				_pio_set(PIOC, PIN_LED_RED);			
+				_pio_set(PIOA, (1 << PIN_LED_BLUE)|( 1 << PIN_LED_GREEN));
+				_pio_set(PIOC, 1 << PIN_LED_RED);			
 			}
 				
 			//_pio_set_output(PIOA, PIN_LED_BLUE, const uint32_t ul_default_level, const uint32_t ul_pull_up_enable)
