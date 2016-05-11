@@ -113,7 +113,7 @@
 #define MASK_BUT_2		(1u << PIN_BUTTON_2)
 
 static uint32_t counter = 0;
-static char buffer[10];
+static uint32_t timer = 0;
 
 /************************************************************************/
 /* 
@@ -127,14 +127,16 @@ Config Modules
 static void Button1_Handler(uint32_t id, uint32_t mask)
 {
 	ili93xx_set_foreground_color(COLOR_WHITE);
-	ili93xx_draw_filled_rectangle(120,110,140,130);
+	ili93xx_draw_filled_rectangle(115,110,170,135);
 	//Increase Counter
 	counter++;
-	
-	sprintf(buffer, 10, "%d", counter);
 	ili93xx_set_foreground_color(COLOR_BLACK);
-	ili93xx_draw_string(130, 120, (uint8_t *) buffer);
+	char buffer[10];
+	snprintf(buffer, 5, "%d", counter);
+	ili93xx_draw_string(120, 120, (uint8_t *)buffer);
 	
+	
+
 }
 
 /**
@@ -143,9 +145,14 @@ static void Button1_Handler(uint32_t id, uint32_t mask)
 	
 static void Button2_Handler(uint32_t id, uint32_t mask)
 {
+	ili93xx_set_foreground_color(COLOR_WHITE);
+	ili93xx_draw_filled_rectangle(115,110,170,135);
 	//Decrease Counter
-	//counter--;
-	//ili93xx_draw_string(130, 120, (uint8_t *) counter);
+	counter--;
+	ili93xx_set_foreground_color(COLOR_BLACK);
+	char buffer[10];
+	snprintf(buffer, 5, "%d", counter);
+	ili93xx_draw_string(120, 120, (uint8_t *)buffer);
 }
 
 /**
@@ -161,8 +168,22 @@ void TC0_Handler(void)
 	/* Avoid compiler warning */
 	UNUSED(ul_dummy);
 
-	/**TODO  Atualiza Tempo */
-		ili93xx_draw_string(80, 140, (uint8_t *)"4");
+	/**Atualiza Tempo */
+	
+	timer ++;
+	ili93xx_set_foreground_color(COLOR_WHITE);
+	ili93xx_draw_filled_rectangle(75,135,175, 235);
+	ili93xx_set_foreground_color(COLOR_BLACK);
+	int min = timer / 60;
+	int seg = timer % 60;
+
+	
+	char buffer[10];
+	snprintf(buffer, 10, "%02d:%02d", min, seg);
+	ili93xx_draw_string(80, 140, (uint8_t *)buffer);
+	
+	
+		//ili93xx_draw_string(80, 140, (uint8_t *)"4");
 
 
 
@@ -261,7 +282,7 @@ static void configure_tc(void)
 	*
 	*
 	*/
-	tc_write_rc(TC0,0,8192);
+	tc_write_rc(TC0,0,32768);
 	
 	/*
 	* Devemos configurar o NVIC para receber interrupções do TC 
@@ -395,7 +416,7 @@ int main(void)
 	
 	//Contador
 	
-	ili93xx_draw_string(10, 120, (uint8_t *)"Contador: ");
+	ili93xx_draw_string(10, 120, (uint8_t *)"Contador:0");
 	
 		//Elapsed_Time
 	ili93xx_draw_string(10, 140, (uint8_t *)"Time:");
