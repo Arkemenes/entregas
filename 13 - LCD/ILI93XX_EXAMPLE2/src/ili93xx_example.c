@@ -172,7 +172,7 @@ void TC0_Handler(void)
 	
 	timer ++;
 	ili93xx_set_foreground_color(COLOR_WHITE);
-	ili93xx_draw_filled_rectangle(75,135,175, 235);
+	ili93xx_draw_filled_rectangle(175,295,250, 320);
 	ili93xx_set_foreground_color(COLOR_BLACK);
 	int min = timer / 60;
 	int seg = timer % 60;
@@ -180,7 +180,7 @@ void TC0_Handler(void)
 	
 	char buffer[10];
 	snprintf(buffer, 10, "%02d:%02d", min, seg);
-	ili93xx_draw_string(80, 140, (uint8_t *)buffer);
+	ili93xx_draw_string(180, 300, (uint8_t *)buffer);
 	
 	
 		//ili93xx_draw_string(80, 140, (uint8_t *)"4");
@@ -402,11 +402,11 @@ int main(void)
 	*
 	*/
 	ili93xx_set_foreground_color(COLOR_BLACK);
-	ili93xx_draw_string(10, 20, (uint8_t *)"Rodrigo");
+	ili93xx_draw_string(10, 20, (uint8_t *)"Rodrigo 13.04537-7");
 	
-	ili93xx_draw_string(10, 40, (uint8_t *)"Eric");
+	ili93xx_draw_string(10, 40, (uint8_t *)"Eric    13.01703-9");
 	
-	ili93xx_draw_string(10, 60, (uint8_t *)"Thiago");
+	ili93xx_draw_string(10, 60, (uint8_t *)"Thiago  12.03287-5");
 
 	ili93xx_draw_line(0, 90, 400, 90);
 
@@ -419,7 +419,7 @@ int main(void)
 	ili93xx_draw_string(10, 120, (uint8_t *)"Contador:0");
 	
 		//Elapsed_Time
-	ili93xx_draw_string(10, 140, (uint8_t *)"Time:");
+	ili93xx_draw_string(108, 300, (uint8_t *)"Timer:00:00");
 
 
 	
