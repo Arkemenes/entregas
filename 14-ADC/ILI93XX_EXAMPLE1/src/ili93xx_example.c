@@ -275,26 +275,25 @@ void ADC_Handler(void)
 }
 
 void UpdateResIndicator(uint32_t res){
-	int max = 10;
-	int min = 0;
-	int x;
-	int y;
-	int angle;
-	int radius = 40;
+	uint32_t max = 10;
+	uint32_t min = 0;
+	uint32_t x;
+	uint32_t y;
+	float angle;
+	uint32_t radius = 70;
 	//Clean screen
 	ili93xx_set_foreground_color(COLOR_WHITE);
 	ili93xx_draw_filled_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,95);
 	//Update indecator
 	ili93xx_set_foreground_color(COLOR_BLACK);
 	if(res<min || res>max){
-		ili93xx_draw_string(10, ILI93XX_LCD_HEIGHT*0.6, (uint8_t *)"Resistência inválida");
+		ili93xx_draw_string(10, ILI93XX_LCD_HEIGHT*0.6, (uint8_t *)"Resist. invalida");
 	}
 	else{
+			angle=(((float)res/((float)(max-min))))*3.141592653;
 		
-		angle=res/(max-min)*3.141592653;
-		
-		x = cos(3.141592653-angle)*radius;
-		y = sin(angle)*radius;
+		x = cos(3.141592653-angle)*radius+ILI93XX_LCD_WIDTH/2;
+		y = -sin(angle)*radius+ILI93XX_LCD_HEIGHT*0.65;
 		ili93xx_draw_line(ILI93XX_LCD_WIDTH/2, ILI93XX_LCD_HEIGHT*0.65, x, y);
 	}
 }
@@ -326,7 +325,8 @@ int main(void)
 	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
 	int res;
 	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
-	UpdateResIndicator(4);
+	UpdateResIndicator(8);
+	UpdateResIndicator(2);
 	while (1) {
 		pmc_sleep(SAM_PM_SMODE_SLEEP_WFI);
 	}
