@@ -325,8 +325,20 @@ int main(void)
 	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
 	int res;
 	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
-	UpdateResIndicator(8);
+	UpdateResIndicator(-1);
+	UpdateResIndicator(0);
+	UpdateResIndicator(1);
 	UpdateResIndicator(2);
+	UpdateResIndicator(3);
+	UpdateResIndicator(4);
+	UpdateResIndicator(5);
+	UpdateResIndicator(6);
+	UpdateResIndicator(7);
+	UpdateResIndicator(8);
+	UpdateResIndicator(9);
+	UpdateResIndicator(10);
+	UpdateResIndicator(11);
+	
 	while (1) {
 		pmc_sleep(SAM_PM_SMODE_SLEEP_WFI);
 	}
