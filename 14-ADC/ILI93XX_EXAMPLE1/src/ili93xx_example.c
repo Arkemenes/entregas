@@ -5,6 +5,26 @@
 #include "smc.h"
 #include <math.h>
 
+
+/** Chip select number to be set */
+#define ILI93XX_LCD_CS 1
+
+struct ili93xx_opt_t g_ili93xx_display_opt;
+
+#define PIN_PUSHBUTTON_1_MASK	PIO_PB3
+#define PIN_PUSHBUTTON_1_PIO	PIOB
+#define PIN_PUSHBUTTON_1_ID	ID_PIOB
+#define PIN_PUSHBUTTON_1_TYPE	PIO_INPUT
+#define PIN_PUSHBUTTON_1_ATTR	PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_FALL_EDGE
+
+#define PIN_PUSHBUTTON_2_MASK	PIO_PC12
+#define PIN_PUSHBUTTON_2_PIO	PIOC
+#define PIN_PUSHBUTTON_2_ID	ID_PIOC
+#define PIN_PUSHBUTTON_2_TYPE	PIO_INPUT
+#define PIN_PUSHBUTTON_2_ATTR	PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_FALL_EDGE
+
+
+
 /************************************************************************/
 /* ADC                                                                     */
 /************************************************************************/
@@ -23,28 +43,109 @@
 /** The maximal digital value */
 #define MAX_DIGITAL     (4095)
 
-/* Redefinir isso */
-#define ADC_POT_CHANNEL 1
+/** adc buffer/* Redefinir isso */
+static int16_t gs_s_adc_values[BUFFER_SIZE] = { 0 };
+	
+	
+
+#define ADC_POT_CHANNEL 5
+
+int adc_value_old;
 
 /************************************************************************/
 /* LCD                                                                  */
 /************************************************************************/
 /** Chip select number to be set */
-#define ILI93XX_LCD_CS      1
 
-struct ili93xx_opt_t g_ili93xx_display_opt;
+
+
 
 /************************************************************************/
 /* prototype                                                            */
 /************************************************************************/
 
-void configure_LCD();
-void configure_ADC();
+/************************************************************************/
+/* Interruptions                                                        */
+/************************************************************************/
+
+/**
+ * \brief ADC interrupt handler.
+ * Entramos aqui quando a conversao for concluida.
+ */
+
+
+void updateResIndicator(uint32_t res){
+	uint32_t max = 4095;
+	uint32_t min = 0;
+	uint32_t x;
+	uint32_t y;
+	float angle;
+	uint32_t radius = 40;
+	//Clean screen
+	ili93xx_set_foreground_color(COLOR_WHITE);
+	ili93xx_draw_filled_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,48);
+	//Update indicator
+	ili93xx_set_foreground_color(COLOR_BLACK);
+	if(res<min || res>max){
+		ili93xx_draw_string(10, ILI93XX_LCD_HEIGHT*0.6, (uint8_t *)"Resist. invalida");
+	}
+	else{
+			angle=(((float)res/((float)(max-min))))*3.141592653;
+		
+		x = cos(3.141592653-angle)*radius+ILI93XX_LCD_WIDTH/2;
+		y = -sin(angle)*radius+ILI93XX_LCD_HEIGHT*0.65;
+		ili93xx_draw_line(ILI93XX_LCD_WIDTH/2, ILI93XX_LCD_HEIGHT*0.65, x, y);
+	}
+}
+
+/**
+ * \brief Timmer handler (100ms) starts a new conversion.
+ */
+void TC0_Handler(void)
+{
+	volatile uint32_t ul_dummy;
+
+	/* Clear status bit to acknowledge interrupt */
+	ul_dummy = tc_get_status(TC0,0);
+
+	/* Avoid compiler warning */
+	UNUSED(ul_dummy);
+	
+	adc_start(ADC);
+	
+}
+
+
+
+static void push_button_handle(uint32_t id, uint32_t mask)
+{
+	adc_start(ADC);
+}
+
+
+/**
+* \brief ADC interrupt handler.
+*/
+void ADC_Handler(void)
+{
+	uint32_t tmp;
+	uint32_t status ;
+	float resistencia;
+
+	status = adc_get_status(ADC);
+
+	/* Checa se a interrupção é devido ao canal 5 */
+	if ((status & ADC_ISR_EOC5)) {
+		tmp = adc_get_channel_value(ADC, ADC_POT_CHANNEL);
+		updateResIndicator(tmp);
+
+	}
+}
 
 /************************************************************************/
 /* Configs                                                              */
 /************************************************************************/
-void configure_LCD(){
+void configure_lcd(){
 	/** Enable peripheral clock */
 	pmc_enable_periph_clk(ID_SMC);
 
@@ -90,7 +191,20 @@ void configure_LCD(){
 	ili93xx_set_cursor_position(0, 0);
 }
 
-void configure_ADC(void){
+void configure_botao(void)
+{
+	pmc_enable_periph_clk(PIN_PUSHBUTTON_1_ID);
+	pio_set_input(PIN_PUSHBUTTON_1_PIO, PIN_PUSHBUTTON_1_MASK, PIN_PUSHBUTTON_1_ATTR);
+	pio_set_debounce_filter(PIN_PUSHBUTTON_1_PIO, PIN_PUSHBUTTON_1_MASK, 10);
+	pio_handler_set(PIN_PUSHBUTTON_1_PIO, PIN_PUSHBUTTON_1_ID,PIN_PUSHBUTTON_1_MASK, PIN_PUSHBUTTON_1_ATTR ,push_button_handle);
+	pio_enable_interrupt(PIN_PUSHBUTTON_1_PIO, PIN_PUSHBUTTON_1_MASK);
+	NVIC_SetPriority((IRQn_Type) PIN_PUSHBUTTON_1_ID, 0);
+	NVIC_EnableIRQ((IRQn_Type) PIN_PUSHBUTTON_1_ID);
+}
+
+
+void configure_adc(void)
+{
 	
 	/* Enable peripheral clock. */
 	pmc_enable_periph_clk(ID_ADC);
@@ -131,6 +245,9 @@ void configure_ADC(void){
 	/* Enable channel for potentiometer. */
 	adc_enable_channel(ADC, ADC_POT_CHANNEL);
 
+/* Enable the temperature sensor. */
+adc_enable_ts(ADC);
+
 	/* Enable ADC interrupt. */
 	NVIC_EnableIRQ(ADC_IRQn);
 
@@ -138,7 +255,7 @@ void configure_ADC(void){
 	adc_start(ADC);
 
 	/* Enable PDC channel interrupt. */
-	adc_enable_interrupt(ADC, ADC_ISR_RXBUFF);
+	adc_enable_interrupt(ADC, ADC_ISR_EOC5);
 }
 
 
@@ -208,7 +325,7 @@ static void configure_tc(uint32_t freq)
 	*
 	*
 	*/
-	tc_write_rc(TC0,0,TC_CMR_TCCLKS_TIMER_CLOCK5/freq);
+	tc_write_rc(TC0,0,freq/TC_CMR_TCCLKS_TIMER_CLOCK5);
 	
 	/*
 	* Devemos configurar o NVIC para receber interrupções do TC 
@@ -236,67 +353,8 @@ static void configure_tc(uint32_t freq)
 
 
 
-/************************************************************************/
-/* Interruptions                                                        */
-/************************************************************************/
 
-/**
- * \brief Timmer handler (100ms) starts a new conversion.
- */
-void TC0_Handler(void)
-{
-	volatile uint32_t ul_dummy;
 
-	/* Clear status bit to acknowledge interrupt */
-	ul_dummy = tc_get_status(TC0,0);
-
-	/* Avoid compiler warning */
-	UNUSED(ul_dummy);
-	
-	if (adc_get_status(ADC) & (1 << ADC_POT_CHANNEL)) {
-		adc_start(ADC);
-	}
-}
-
-/**
- * \brief ADC interrupt handler.
- * Entramos aqui quando a conversao for concluida.
- */
-void ADC_Handler(void)
-{
-	uint32_t resistencia ;
-	uint32_t resistencia2 ;
-
-	if ((adc_get_status(ADC) & ADC_ISR_RXBUFF) == ADC_ISR_RXBUFF) {
-	// cada bit =0,00081 V
-		resistencia = adc_get_channel_value(ADC, 0);
-		resistencia = resistencia*0.00081;
-	}
-}
-
-void UpdateResIndicator(uint32_t res){
-	uint32_t max = 10;
-	uint32_t min = 0;
-	uint32_t x;
-	uint32_t y;
-	float angle;
-	uint32_t radius = 70;
-	//Clean screen
-	ili93xx_set_foreground_color(COLOR_WHITE);
-	ili93xx_draw_filled_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,95);
-	//Update indecator
-	ili93xx_set_foreground_color(COLOR_BLACK);
-	if(res<min || res>max){
-		ili93xx_draw_string(10, ILI93XX_LCD_HEIGHT*0.6, (uint8_t *)"Resist. invalida");
-	}
-	else{
-			angle=(((float)res/((float)(max-min))))*3.141592653;
-		
-		x = cos(3.141592653-angle)*radius+ILI93XX_LCD_WIDTH/2;
-		y = -sin(angle)*radius+ILI93XX_LCD_HEIGHT*0.65;
-		ili93xx_draw_line(ILI93XX_LCD_WIDTH/2, ILI93XX_LCD_HEIGHT*0.65, x, y);
-	}
-}
 /**
  * \brief Application entry point for smc_lcd example.
  *
@@ -306,11 +364,10 @@ int main(void)
 {
 	sysclk_init();
 	board_init();
-
-	configure_LCD();
-	//configure_ADC();
-	
-	configure_tc(1);
+	configure_lcd();
+	configure_botao();
+	configure_adc();
+	configure_tc(3.1415926535);
 	ili93xx_set_foreground_color(COLOR_BLACK);
 	ili93xx_draw_string(10, 20, (uint8_t *)"Rodrigo 13.04537-7");
 	
@@ -322,23 +379,12 @@ int main(void)
 
 	ili93xx_draw_line(0, 100, 400, 100);
 
-	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
-	int res;
-	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,100);
-	UpdateResIndicator(-1);
-	UpdateResIndicator(0);
-	UpdateResIndicator(1);
-	UpdateResIndicator(2);
-	UpdateResIndicator(3);
-	UpdateResIndicator(4);
-	UpdateResIndicator(5);
-	UpdateResIndicator(6);
-	UpdateResIndicator(7);
-	UpdateResIndicator(8);
-	UpdateResIndicator(9);
-	UpdateResIndicator(10);
-	UpdateResIndicator(11);
+	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,50);
+
+	ili93xx_draw_circle(ILI93XX_LCD_WIDTH/2,ILI93XX_LCD_HEIGHT*0.65,50);
 	
+		
+		
 	while (1) {
 		pmc_sleep(SAM_PM_SMODE_SLEEP_WFI);
 	}
