@@ -8,7 +8,7 @@
 
 
 static void outputSin(void);
-
+static void drawDot(void);
 
 
 //DEFINES
@@ -50,8 +50,30 @@ static void outputSin(void);
 #define MASK_BUT_1		(1u << PIN_BUTTON)
 #define MASK_BUT_2		(1u << PIN_BUTTON_2)
 
+/************************************************************************/
+/* ADC                                                                     */
+/************************************************************************/
 
+/** Size of the receive buffer and transmit buffer. */
+#define BUFFER_SIZE     (100)
+/** Reference voltage for ADC,in mv. */
+#define VOLT_REF        (3300)
+/* Tracking Time*/
+#define TRACKING_TIME    1
+/* Transfer Period */
+#define TRANSFER_PERIOD  1
+/* Startup Time*/
+#define STARTUP_TIME ADC_STARTUP_TIME_4
 
+/** The maximal digital value */
+#define MAX_DIGITAL     (4095)
+
+/** adc buffer/* Redefinir isso */
+static int16_t gs_s_adc_values[BUFFER_SIZE] = { 0 };
+
+#define ADC_POT_CHANNEL 5
+
+int adc_value_old;
 
 
 
@@ -90,6 +112,8 @@ static uint32_t freq = 1;
 static uint32_t freqTc = 60;
 static uint32_t x = 0;
 static uint32_t y = 0;
+static uint32_t mode = 1;
+static uint32_t res = 0;
 
 /************************************************************************/
 /* 
@@ -102,15 +126,7 @@ Config Modules
 
 static void Button1_Handler(uint32_t id, uint32_t mask)
 {
-	ili93xx_set_foreground_color(COLOR_WHITE);
-	ili93xx_draw_filled_rectangle(115,110,170,135);
-	//Increase Counter
-	counter++;
-	ili93xx_set_foreground_color(COLOR_BLACK);
-	char buffer[10];
-	snprintf(buffer, 5, "%d", counter);
-	ili93xx_draw_string(120, 120, (uint8_t *)buffer);
-	
+	mode = 1;
 	
 
 }
@@ -121,14 +137,7 @@ static void Button1_Handler(uint32_t id, uint32_t mask)
 	
 static void Button2_Handler(uint32_t id, uint32_t mask)
 {
-	ili93xx_set_foreground_color(COLOR_WHITE);
-	ili93xx_draw_filled_rectangle(115,110,170,135);
-	//Decrease Counter
-	counter--;
-	ili93xx_set_foreground_color(COLOR_BLACK);
-	char buffer[10];
-	snprintf(buffer, 5, "%d", counter);
-	ili93xx_draw_string(120, 120, (uint8_t *)buffer);
+	mode = 0;
 }
 
 /**
@@ -154,9 +163,50 @@ void TC0_Handler(void){
   counter++;
   status = dacc_get_interrupt_status(DACC_BASE);
   //dacc_write_conversion_data(DACC_BASE, valorDAC);
+  
+ 
+	adc_start(ADC);
+	if (mode == 1)
+	  A = res;
+	  
+	 else
+	  freq = 5*res/MAX_DIGITAL;
+	  //freq = (uint32_t)((float)res/MAX_DIGITAL);
+
+	if (counter%100 == 0)
+	{
+		ili93xx_set_foreground_color(COLOR_WHITE);
+		ili93xx_draw_filled_rectangle(9,195,300,215);
+		ili93xx_set_foreground_color(COLOR_BLACK);
+		ili93xx_draw_string(10, 200, (uint8_t *)"Amp:      Freq:");
+		char buffer[10];
+		snprintf(buffer, 10, "%.2fV", (float)A*3.3/MAX_DIGITAL);
+		ili93xx_draw_string(60, 200, (uint8_t *)buffer);
+		snprintf(buffer, 10, "%d Hz", freq);
+		ili93xx_draw_string(195, 200, (uint8_t *)buffer);
+	}
+
+	  
   outputSin();
+  drawDot();
 }
 
+
+void ADC_Handler(void)
+{
+	uint32_t tmp;
+	uint32_t status ;
+	
+
+	status = adc_get_status(ADC);
+
+	/* Checa se a interrupção é devido ao canal 5 */
+	if ((status )) {
+		res = adc_get_channel_value(ADC, ADC_POT_CHANNEL);
+
+	}
+
+}
 void configure_LCD(void){
   /** Enable peripheral clock */
   pmc_enable_periph_clk(ID_SMC);
@@ -316,6 +366,63 @@ static void configure_tc(void)
  }
 
 
+
+void configure_adc(void)
+{
+	
+	/* Enable peripheral clock. */
+	pmc_enable_periph_clk(ID_ADC);
+	
+	/* Initialize ADC. */
+	/*
+	 * Formula: ADCClock = MCK / ( (PRESCAL+1) * 2 )
+	 * For example, MCK = 64MHZ, PRESCAL = 4, then:
+	 * ADCClock = 64 / ((4+1) * 2) = 6.4MHz;
+	 */
+	/* Formula:
+	 *     Startup  Time = startup value / ADCClock
+	 *     Startup time = 64 / 6.4MHz = 10 us
+	 */
+	adc_init(ADC, sysclk_get_cpu_hz(), 6400000, STARTUP_TIME);
+	
+	/* Formula:
+	 *     Transfer Time = (TRANSFER * 2 + 3) / ADCClock
+	 *     Tracking Time = (TRACKTIM + 1) / ADCClock
+	 *     Settling Time = settling value / ADCClock
+	 *
+	 *     Transfer Time = (1 * 2 + 3) / 6.4MHz = 781 ns
+	 *     Tracking Time = (1 + 1) / 6.4MHz = 312 ns
+	 *     Settling Time = 3 / 6.4MHz = 469 ns
+	 */
+	adc_configure_timing(ADC, TRACKING_TIME	, ADC_SETTLING_TIME_3, TRANSFER_PERIOD);
+
+	/*
+	* Configura trigger por software
+	*/ 
+	adc_configure_trigger(ADC, ADC_TRIG_SW, 0);
+
+	/*
+	* Checa se configuração 
+	*/
+	// adc_check(ADC, sysclk_get_cpu_hz());
+
+	/* Enable channel for potentiometer. */
+	adc_enable_channel(ADC, ADC_POT_CHANNEL);
+
+	/* Enable the temperature sensor. */
+	adc_enable_ts(ADC);
+
+	/* Enable ADC interrupt. */
+	NVIC_EnableIRQ(ADC_IRQn);
+
+	/* Start conversion. */
+	adc_start(ADC);
+
+	/* Enable PDC channel interrupt. */
+	adc_enable_interrupt(ADC, ADC_ISR_EOC5);
+}
+
+
 static void outputSin(void){
 	      //delay_us(100);
 	      //i++;
@@ -329,8 +436,13 @@ static void outputSin(void){
 
 static void drawDot(){
 	
-	if(x<= MAX_DIGITAL)
-		dacc_write_conversion_data(DACC_BASE, x);
+	
+	if(x<= ILI93XX_LCD_WIDTH){
+		ili93xx_set_foreground_color(COLOR_BLACK);
+		ili93xx_draw_pixel(x++,50+(A/2+A/2*sin(counter*3.1415926535*2/freqTc*freq))*100/MAX_DIGITAL);
+		ili93xx_set_foreground_color(COLOR_WHITE);
+		ili93xx_draw_filled_rectangle(x,0,x+10,150);
+	}
 	else
 		x = 0;
 }	     
@@ -385,6 +497,9 @@ int main(void)
 	
 	/* Configura os botões */
 	configure_buttons(counter);
+	
+	/*Configure ADC*/
+	configure_adc();
   
   while (1) {
   	
