@@ -296,7 +296,7 @@ static void configure_tc(void)
 	*
 	*	#define TC_IER_COVFS (0x1u << 0)	Counter Overflow 
 	*	#define TC_IER_LOVRS (0x1u << 1)	Load Overrun 
-	*	#define TC_IER_CPAS  (0x1u << 2)	RA Compare 
+	*	#define TC_IER_CPAS  (0x1u 2)	RA Compare 
 	*	#define TC_IER_CPBS  (0x1u << 3)	RB Compare 
 	*	#define TC_IER_CPCS  (0x1u << 4)	RC Compare 
 	*	#define TC_IER_LDRAS (0x1u << 5)	RA Loading 
