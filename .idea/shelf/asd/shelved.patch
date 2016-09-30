@@ -1,0 +1,16 @@
+Index: 14-ADC/ILI93XX_EXAMPLE1.atsln
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- 14-ADC/ILI93XX_EXAMPLE1.atsln	(revision e3c16d00ffb72267dca2e925d5a54fff07b656bf)
++++ 14-ADC/ILI93XX_EXAMPLE1.atsln	(revision )
+@@ -16,7 +16,7 @@
+ 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|ARM.ActiveCfg = Release|ARM
+ 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|ARM.Build.0 = Release|ARM
+ 	EndGlobalSection
+-	GlobalSection(SolutionProperties) = preSolution
++	GlobalSection(SolutionProperties) = preSolutionmm
+ 		HideSolutionNode = FALSE
+ 	EndGlobalSection
+ EndGlobal
